@@ -121,11 +121,14 @@ class MyDatabase(BaseHTTPRequestHandler):
             )
             connection.commit()
            
-            return {"status": "success", "message": f"O dominio {domain_name}, foi selecionado com sucesso", "status_code": 201}
+            return {"status": "success", "message": f"O dominio {domain_name}, foi selecionado com sucesso", "status_code": 200}
 
         except sqlite3.Error as e:
             print(f"Database error: {e}")
             return {"status": "error", "message": "Database error", "status_code": 500}
+
+    def upload_file(file_type, file_content, file_name, domain_id):
+        pass
 
     def list_domains_json():
         # create connection to the database 

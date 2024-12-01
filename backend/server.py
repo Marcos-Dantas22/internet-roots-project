@@ -31,53 +31,57 @@ class MyDomainServer(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(domains).encode('utf-8'))
 
     def upload_files(self):
-        pass
-    
-    def select_domain(self):
-        from utils import parse_multipart_data
+        from form import FormsRequest
 
         content_length = int(self.headers['Content-Length'])
         body = self.rfile.read(content_length)
-        
-        if(body == b'' or len(body) == 0):
-            status_code = 404
-            header = ('Content-Type', 'application/json')
-            response = f"{{'status': 'error', 'message': 'Não encontrado campos domain_name e username', 'status_code': 409}}"
-            self.send_response(status_code)
-            self.send_header(header[0], header[1])
-            self.end_headers()
-            self.wfile.write(response.encode('utf-8'))
+        form = FormsRequest(['file_type','file_content', 'file_name', 'domain_id'], body)
 
-        # Processar o corpo para obter os campos
-        fields = parse_multipart_data(body)
-
-        domain_name = fields.get("domain_name", None) 
-        username = fields.get("username", None)
-
-        if(not domain_name):
-            status_code = 404
-            header = ('Content-Type', 'application/json')
-            response = f"{{'status': 'error', 'message': 'Não encontrado campo domain_name', 'status_code': 409}}"
-        elif(not username):
-            status_code = 404
-            header = ('Content-Type', 'application/json')
-            response = f"{{'status': 'error', 'message': 'Não encontrado campo username', 'status_code': 409}}"
-        else:
-            dict_response = MyDatabase.select_domain(domain_name, username)
+        if form.is_valid():
+            dict_response = MyDatabase.upload_file(
+                form.get_file_type, form.get_file_content, form.get_file_name, form.get_domain_id
+            )
             if(not dict_response['status'] == 'error'):
                 status_code = dict_response['status_code']
                 header = ('Content-Type', 'application/json')
-                response = f"{dict_response}"
+                response = dict_response
             else:
                 status_code = dict_response['status_code']
                 header = ('Content-Type', 'application/json')
-                response = f"{dict_response}"
+                response = dict_response
+        else:
+            response, status_code = form.get_errors()
        
-        # Enviar a resposta
         self.send_response(status_code)
-        self.send_header(header[0], header[1])
+        self.send_header('Content-Type', 'application/json') 
         self.end_headers()
-        
+        response = json.dumps(response)
+        self.wfile.write(response.encode('utf-8'))
+    
+    def select_domain(self):
+        from form import FormsRequest
+
+        content_length = int(self.headers['Content-Length'])
+        body = self.rfile.read(content_length)
+        form = FormsRequest(['domain_name','username'], body)
+
+        if form.is_valid():
+            dict_response = MyDatabase.select_domain(form.get_domain_name, form.get_username)
+            if(not dict_response['status'] == 'error'):
+                status_code = dict_response['status_code']
+                header = ('Content-Type', 'application/json')
+                response = dict_response
+            else:
+                status_code = dict_response['status_code']
+                header = ('Content-Type', 'application/json')
+                response = dict_response
+        else:
+            response, status_code = form.get_errors()
+            
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json') 
+        self.end_headers()
+        response = json.dumps(response)
         self.wfile.write(response.encode('utf-8'))
 
     def handle_404(self):
