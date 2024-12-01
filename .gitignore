@@ -1,0 +1,42 @@
+# Arquivos e diretórios do ambiente Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Configurações de ambientes virtuais
+.env/
+.venv/
+env/
+venv/
+ENV/
+*.env
+*.env.*
+
+# Arquivos do PyInstaller
+*.spec
+
+# Configurações de IDEs e editores
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+*.log.*
+
+# Banco de dados local
+*.db
+*.sqlite3
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.old
+*.~*
+
+# Migrações geradas automaticamente
+migrations/
+
+# Outros
+.DS_Store
